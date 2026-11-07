@@ -1090,3 +1090,8 @@ Evidence: `HALO_DMG=1 swift test --filter readOnlyDiskImage` mounted a real read
 - Real app every-action run with HEIC: 438 PASS, 2 FAIL (Compress on animated GIF: the app correctly refuses, the test expected a file; test fixed, not yet rerun). HEIC/AVIF jobs 25/27; chip in use in 87 samples, never more than 1 at once. No new panic reports.
 - Live drag test collided with this run once (both use the app) and was cancelled when the founder asked to launch the app; still to rerun alone on an idle Mac.
 - Rule added to CLAUDE.md and AGENTS.md: HEIC tests alone, under the probe, founder's yes, stop if 2 at once.
+
+## 2026-11-08 02:16: live drag test after ring-lag and card changes
+- Run 1: 32/33. Fail #25 "pause then drop in the hub": no "Pause check" was logged, so the pause never registered (timing).
+- Run 2: 31/33. #25 passed. Fails #2/#3: the driver's accessibility lookup missed the home window for 5 s, but the app log shows "Home window shown" 0.22 s after launch, and "reopen shows window" passed later in the same run.
+- Every check passed in at least one run, and there were no Frenzy crash reports. Read: flaky test timing, not app bugs. Follow-up: harden the driver (longer AX wait at launch, steadier pause for #25) and rerun 3 times.
