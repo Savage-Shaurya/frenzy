@@ -1,0 +1,45 @@
+# The exact FFmpeg configure line behind vendor/build/arm64/bin/frenzy-media-engine.
+# Run from a clean ffmpeg-9.0.2 tree after building x264, x265, LAME, libwebp and dav1d as scripts/build-media-engine.sh does.
+./configure \
+  --prefix=/tmp/frenzy-media-engine/prefix \
+  --cc=clang \
+  --arch=arm64 \
+  --target-os=darwin \
+  --enable-static \
+  --disable-shared \
+  --enable-gpl \
+  --disable-nonfree \
+  --disable-version3 \
+  --disable-network \
+  --disable-autodetect \
+  --disable-everything \
+  --disable-doc \
+  --disable-debug \
+  --disable-ffplay \
+  --disable-ffprobe \
+  --disable-avdevice \
+  --disable-iconv \
+  --disable-bzlib \
+  --disable-lzma \
+  --enable-pthreads \
+  --enable-zlib \
+  --disable-videotoolbox \
+  --enable-audiotoolbox \
+  --enable-libmp3lame \
+  --enable-libwebp \
+  --enable-libdav1d \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-protocol=file\,pipe \
+  --enable-demuxer=matroska\,avi\,flv\,asf\,ogg\,mov\,mp3\,wav\,aiff\,flac\,aac\,ac3\,eac3\,dts\,dtshd\,truehd\,mlp\,mpegts\,mpegps\,mpegvideo\,m4v\,amr\,ape\,wv\,caf\,image_png_pipe\,rawvideo \
+  --enable-decoder=h264\,hevc\,libdav1d\,vp8\,vp9\,vp6\,vp6a\,vp6f\,flv\,h263\,h263i\,h263p\,mpeg4\,msmpeg4v1\,msmpeg4v2\,msmpeg4v3\,wmv1\,wmv2\,wmv3\,vc1\,mpeg1video\,mpeg2video\,mjpeg\,theora\,vp3\,flashsv\,flashsv2\,rawvideo\,prores\,dvvideo\,huffyuv\,ffv1\,cinepak\,msvideo1\,png\,aac\,aac_latm\,ac3\,eac3\,dca\,truehd\,mlp\,mp1\,mp2\,mp3\,opus\,vorbis\,flac\,alac\,wmav1\,wmav2\,wmapro\,wmalossless\,pcm_s8\,pcm_u8\,pcm_s16le\,pcm_s16be\,pcm_s24le\,pcm_s24be\,pcm_s32le\,pcm_s32be\,pcm_f32le\,pcm_f32be\,pcm_f64le\,pcm_mulaw\,pcm_alaw\,adpcm_ima_wav\,adpcm_ms\,amrnb\,amrwb\,ape\,wavpack \
+  --enable-encoder=libx264\,libx265\,aac_at\,libmp3lame\,flac\,libwebp\,gif\,pcm_s16le\,pcm_s24le\,pcm_s16be\,pcm_s24be \
+  --enable-muxer=mp4\,mov\,ipod\,mp3\,flac\,wav\,aiff\,webp\,gif\,null \
+  --enable-parser=h264\,hevc\,vp8\,vp9\,av1\,aac\,aac_latm\,ac3\,dca\,flac\,mpeg4video\,mpegvideo\,mpegaudio\,opus\,vorbis\,vc1\,h263\,mjpeg\,png\,vp3\,mlp \
+  --enable-bsf=aac_adtstoasc\,extract_extradata\,vp9_superframe\,vp9_superframe_split\,av1_frame_merge\,h264_mp4toannexb\,hevc_mp4toannexb\,mpeg4_unpack_bframes \
+  --enable-filter=scale\,format\,fps\,split\,palettegen\,paletteuse\,aresample\,aformat\,anull\,null\,transpose\,hflip\,vflip\,rotate\,setsar\,crop\,trim\,atrim\,setparams \
+  --pkg-config=/tmp/frenzy-media-engine/tools/bin/pkg-config-shim \
+  --pkg-config-flags=--static \
+  --extra-cflags=-mmacosx-version-min=14.0\ -I/tmp/frenzy-media-engine/prefix/include \
+  --extra-ldflags=-mmacosx-version-min=14.0\ -L/tmp/frenzy-media-engine/prefix/lib \
+

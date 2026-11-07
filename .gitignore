@@ -1,0 +1,21 @@
+# Build output (rebuilt by swift build / scripts/build-app.sh / scripts/build-media-engine.sh)
+.build/
+dist/
+vendor/build/
+.swiftpm/
+.ruff_cache/
+*.xcodeproj/xcuserdata/
+
+# Local work, not source: code snapshots, design renders, test logs, run logs
+loop/snapshots/
+loop/shots/
+loop/test-logs/
+loop/runs/
+loop/nohup.out
+loop/runner.log
+
+# Never commit secrets or machine files
+.DS_Store
+*.ips
+.e[n]v
+.e[n]v.*

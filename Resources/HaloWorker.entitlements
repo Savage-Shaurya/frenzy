@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements of Halo's conversion worker (Contents/XPCServices/com.snappycrew.frenzy.worker.xpc).
+
+  - App Sandbox ON. No com.apple.security.network.client / .server, so the kernel denies every socket connect,
+    send and DNS lookup from this process (verified: `Frenzy.app/Contents/MacOS/Frenzy \-\-worker-self-test`).
+    "No network" means no sockets and no DNS. The App Sandbox still lets any app ask LaunchServices to open a link or
+    an app (lsopen) and use the pasteboard; the self-test reports both, and docs/PRIVACY.md says so.
+  - Read-only access to the whole disk, so it can read the files you drop (they can be anywhere). Not narrowed: the
+    app passes paths, not open files, and most converters need a path. It can write only inside its own container
+    (~/Library/Containers/com.snappycrew.frenzy.worker); the app moves the results next to the original.
+  - Hardened runtime with no exceptions (set by codesign \-\-options runtime).
+-->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.temporary-exception.files.absolute-path.read-only</key>
+	<array>
+		<string>/</string>
+	</array>
+</dict>
+</plist>

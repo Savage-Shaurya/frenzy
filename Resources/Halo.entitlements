@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Entitlements of the Halo app itself (the menu-bar process), used with the hardened runtime.
+
+  Deliberately empty:
+  - No App Sandbox here. The app watches drags system-wide and writes the converted file next to the original in
+    any folder, which a sandboxed app can't do. Because it is NOT sandboxed, an empty file is NOT what keeps it
+    offline: it is offline because its code has no networking and it never parses file contents.
+  - Every file is parsed in the sandboxed worker instead (Contents/XPCServices/com.snappycrew.frenzy.worker.xpc,
+    Resources/HaloWorker.entitlements): App Sandbox on, no network entitlements.
+  - No hardened-runtime exceptions (no JIT, no unsigned executable memory, no library-validation opt-out,
+    no DYLD environment variables, no debugger attachment).
+  See docs/RELEASE.md ("Sandbox decision") and docs/PRIVACY.md.
+-->
+<plist version="1.0">
+<dict/>
+</plist>

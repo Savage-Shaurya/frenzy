@@ -1,0 +1,34 @@
+Frenzy includes third-party software
+====================================
+
+Frenzy's own code is not covered by these licences. The parts below make up one separate program inside the app, its
+media engine (Contents/XPCServices/com.snappycrew.frenzy.worker.xpc/Contents/Helpers/frenzy-media-engine). It converts
+formats that macOS can't handle itself. It runs as its own process, and you may rebuild or replace it.
+
+FFmpeg 9.0.2
+  This software uses code of FFmpeg (https://ffmpeg.org) licensed under the GNU Lesser General Public License,
+  version 2.1 or later (LGPL). Built without GPL or non-free parts.
+  Source: https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
+  Licence: Licenses/FFmpeg-COPYING.LGPLv2.1.txt, Licenses/FFmpeg-LICENSE.md
+  How it was built: Licenses/FFmpeg-configure-line.txt
+
+LAME 3.100 (MP3 encoder)
+  GNU Lesser General Public License, version 2 or later.
+  Source: https://downloads.sourceforge.net/project/lame/lame/3.100/lame-3.100.tar.gz
+  Licence: Licenses/LAME-COPYING.txt
+
+libwebp 1.6.0 (WebP encoder)
+  BSD 3-Clause. Copyright (c) 2010, Google Inc. All rights reserved.
+  Source: https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.6.0.tar.gz
+  Licence: Licenses/libwebp-COPYING.txt, Licenses/libwebp-PATENTS.txt
+
+dav1d 1.5.4 (AV1 decoder)
+  BSD 2-Clause. Copyright (c) 2018-2025, VideoLAN and dav1d authors. All rights reserved.
+  Source: https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz
+  Licence: Licenses/dav1d-COPYING.txt
+
+Rebuilding the engine: the sources above, built as Licenses/FFmpeg-configure-line.txt says, give the same program.
+FFmpeg and LAME are licensed under the LGPL, which lets you modify them and use your own build in place of this one.
+
+No warranty: these libraries are distributed WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+or FITNESS FOR A PARTICULAR PURPOSE. See each licence for details.
