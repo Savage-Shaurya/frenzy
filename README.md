@@ -82,6 +82,10 @@ Quit Frenzy, then drag it from **Applications** to the **Bin**.
 
 ## Licence
 
-Frenzy is free software under the GNU General Public License v2 or later. It includes FFmpeg, x264 and x265. The full licence texts are inside the app. Snappy Crew will provide the source code on request.
+Frenzy is open source under the [Apache License 2.0](LICENSE). Copyright 2026 Snappy Crew.
+
+If you share or build on Frenzy, keep the [NOTICE](NOTICE) file and credit Snappy Crew. The names "Frenzy" and "Snappy Crew" are not licensed for your own products.
+
+The app also includes a separate media engine built from FFmpeg, x264 and x265 (GPL v2 or later), LAME (LGPL), libwebp and dav1d (BSD). Those parts keep their own licences, listed in [THIRD-PARTY-NOTICES](Resources/THIRD-PARTY-NOTICES.txt).
 
 <p align="center">Made by <a href="https://snappycrew.com">Snappy Crew</a></p>

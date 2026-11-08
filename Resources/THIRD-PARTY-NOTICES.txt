@@ -6,11 +6,21 @@ media engine (Contents/XPCServices/com.snappycrew.frenzy.worker.xpc/Contents/Hel
 formats that macOS can't handle itself. It runs as its own process, and you may rebuild or replace it.
 
 FFmpeg 9.0.2
-  This software uses code of FFmpeg (https://ffmpeg.org) licensed under the GNU Lesser General Public License,
-  version 2.1 or later (LGPL). Built without GPL or non-free parts.
+  This software uses code of FFmpeg (https://ffmpeg.org). This build includes x264 and x265, so it is licensed
+  under the GNU General Public License, version 2 or later (GPL). No non-free parts, no network code.
   Source: https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz
-  Licence: Licenses/FFmpeg-COPYING.LGPLv2.1.txt, Licenses/FFmpeg-LICENSE.md
+  Licence: Licenses/FFmpeg-COPYING.GPLv2.txt, Licenses/FFmpeg-LICENSE.md
   How it was built: Licenses/FFmpeg-configure-line.txt
+
+x264 (H.264 video encoder), stable b35605ace3dd
+  GNU General Public License, version 2 or later. Copyright (C) the x264 project (https://www.videolan.org/developers/x264.html).
+  Source: https://code.videolan.org/videolan/x264/-/archive/b35605ace3ddf7c1a5d67a2eb553f034aef41d55/x264-b35605ace3ddf7c1a5d67a2eb553f034aef41d55.tar.bz2
+  Licence: Licenses/x264-COPYING.txt
+
+x265 4.1 (HEVC video encoder)
+  GNU General Public License, version 2 or later. Copyright (C) MulticoreWare, Inc. and the x265 authors.
+  Source: https://download.videolan.org/pub/videolan/x265/x265_4.1.tar.gz
+  Licence: Licenses/x265-COPYING.txt
 
 LAME 3.100 (MP3 encoder)
   GNU Lesser General Public License, version 2 or later.
@@ -28,7 +38,8 @@ dav1d 1.5.4 (AV1 decoder)
   Licence: Licenses/dav1d-COPYING.txt
 
 Rebuilding the engine: the sources above, built as Licenses/FFmpeg-configure-line.txt says, give the same program.
-FFmpeg and LAME are licensed under the LGPL, which lets you modify them and use your own build in place of this one.
+FFmpeg, x264 and x265 are licensed under the GPL and LAME under the LGPL: you may modify them and use your own build in
+place of this one. The engine's complete source is available as described in Licenses/SOURCE-OFFER.txt.
 
 No warranty: these libraries are distributed WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
 or FITNESS FOR A PARTICULAR PURPOSE. See each licence for details.

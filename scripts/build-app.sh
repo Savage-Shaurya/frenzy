@@ -150,6 +150,7 @@ cp "$ENGINE_LICENSES"/* "$APP/Contents/Resources/Licenses/"
 cp "$ROOT/vendor/configure-line.txt" "$APP/Contents/Resources/Licenses/FFmpeg-configure-line.txt"
 # Frenzy's own GPL notice with the full GPL v2 text, and the written offer for the complete source code.
 cp "$ROOT/LICENSE" "$APP/Contents/Resources/Licenses/Frenzy-LICENSE.txt"
+cp "$ROOT/NOTICE" "$APP/Contents/Resources/Licenses/Frenzy-NOTICE.txt"
 cp Resources/SOURCE-OFFER.txt "$APP/Contents/Resources/Licenses/SOURCE-OFFER.txt"
 
 # ── 3. Sign ──────────────────────────────────────────────────────────────────────────────────────────────────

@@ -1,0 +1,21 @@
+Frenzy
+Copyright 2026 Snappy Crew (https://snappycrew.com)
+
+Frenzy was created and is maintained by Snappy Crew. It is licensed under the
+Apache License, Version 2.0 (see the LICENSE file).
+
+If you share, change or build on Frenzy, you must keep this NOTICE file and the
+copyright line above, and you must say clearly that your version was changed and
+is not made by Snappy Crew.
+
+"Frenzy" and "Snappy Crew" are names of Snappy Crew. The Apache License does not
+give permission to use them (section 6 of the licence), except to describe where
+the code came from.
+
+Third-party software
+--------------------
+The app bundles one separate program, its media engine, built from FFmpeg, x264
+and x265 (GNU GPL v2 or later), LAME (GNU LGPL) and libwebp and dav1d (BSD). Those
+parts are not covered by the Apache License: they keep their own licences, listed
+in Resources/THIRD-PARTY-NOTICES.txt. Their exact source tarballs are in
+vendor/sources, and scripts/build-media-engine.sh rebuilds the engine from them.
