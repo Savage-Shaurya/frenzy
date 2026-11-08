@@ -131,8 +131,7 @@ struct AboutPane: View {
     }
 }
 
-/// The brand mark, the same drawing as the app icon (scripts/make-icon.swift): six small bubbles around a glassy disc,
-/// on the brand colour.
+/// The brand mark: six small bubbles around a glassy disc, on the icon's ember gradient (red to flame to gold).
 public struct HaloGlyph: View {
     public init() {}
 
@@ -142,7 +141,7 @@ public struct HaloGlyph: View {
             let white = LinearGradient(colors: [.white, .white.opacity(0.82)], startPoint: .top, endPoint: .bottom)
             ZStack {
                 RoundedRectangle(cornerRadius: side * 0.2237, style: .continuous)
-                    .fill(FrenzyPalette.accent.gradient)
+                    .fill(FrenzyPalette.heroGradient)
                 ForEach(0..<6, id: \.self) { index in
                     let angle = Double(index) * .pi / 3
                     Circle()

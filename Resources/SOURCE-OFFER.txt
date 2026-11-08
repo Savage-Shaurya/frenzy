@@ -1,0 +1,15 @@
+Frenzy: licence and source code
+===============================
+
+Frenzy is free software. You can share it and change it under the terms of the GNU General Public License,
+version 2 or (at your choice) any later version. The full licence is in this folder: Frenzy-LICENSE.txt (Frenzy's
+notice followed by the full text of the GNU GPL version 2).
+
+Frenzy includes FFmpeg, x264 and x265, which are also under the GNU GPL, and LAME, libwebp and dav1d. Their
+licences are in this folder too.
+
+Written offer for the source code: for at least three years from the date of this release, Snappy Crew will give
+anyone who asks a copy of the complete corresponding source code for this version of Frenzy, including FFmpeg,
+x264 and x265, for no more than the cost of sending it. To ask, contact Snappy Crew through https://snappycrew.com.
+
+Frenzy is made by Snappy Crew.

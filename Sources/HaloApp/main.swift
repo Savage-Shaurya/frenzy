@@ -1,7 +1,8 @@
 import AppKit
 
-// Halo is a menu-bar accessory: no Dock icon, no main window. LSUIElement in Info.plist does the same for the
-// bundled app; setting the policy here also covers `swift run` during development.
+// Frenzy is a regular app with a Dock icon (since 9 Nov 2026): a user can always find and open it, even when macOS
+// hides new menu-bar icons. The menu-bar icon stays as an extra. LSUIElement is false in Info.plist to match; setting
+// the policy here also covers `swift run` during development.
 
 // Command-line diagnostics (run the binary inside Halo.app; they need the bundled worker):
 //   Halo.app/Contents/MacOS/Halo --worker-self-test          probe the worker's sandbox, print the result
@@ -18,5 +19,5 @@ guard SingleInstance.acquire() else {
 let app = NSApplication.shared
 let delegate = AppDelegate()
 app.delegate = delegate
-app.setActivationPolicy(.accessory)
+app.setActivationPolicy(.regular)
 app.run()

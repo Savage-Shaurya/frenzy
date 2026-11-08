@@ -19,3 +19,6 @@ loop/runner.log
 *.ips
 .e[n]v
 .e[n]v.*
+
+# Website draft, paused by the founder on 8 Nov 2026 (kept locally, not pushed)
+site/

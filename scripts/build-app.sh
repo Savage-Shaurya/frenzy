@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds dist/Frenzy.app and dist/Frenzy-<version>.dmg.
+# Builds dist/Frenzy.app, dist/Frenzy-<version>.dmg and dist/SHA256SUMS.txt.
 #
 #   scripts/build-app.sh                          arm64, ad-hoc signed (local testing, testers)
 #   scripts/build-app.sh --universal              arm64 + x86_64 in one binary
@@ -148,6 +148,9 @@ cp Resources/THIRD-PARTY-NOTICES.txt "$APP/Contents/Resources/THIRD-PARTY-NOTICE
 mkdir -p "$APP/Contents/Resources/Licenses"
 cp "$ENGINE_LICENSES"/* "$APP/Contents/Resources/Licenses/"
 cp "$ROOT/vendor/configure-line.txt" "$APP/Contents/Resources/Licenses/FFmpeg-configure-line.txt"
+# Frenzy's own GPL notice with the full GPL v2 text, and the written offer for the complete source code.
+cp "$ROOT/LICENSE" "$APP/Contents/Resources/Licenses/Frenzy-LICENSE.txt"
+cp Resources/SOURCE-OFFER.txt "$APP/Contents/Resources/Licenses/SOURCE-OFFER.txt"
 
 # ── 3. Sign ──────────────────────────────────────────────────────────────────────────────────────────────────
 if [[ "$IDENTITY" == "-" ]]; then
@@ -217,11 +220,89 @@ fi
 if [[ "$SKIP_DMG" == 0 ]]; then
   step "Creating $DMG"
   STAGE="$(mktemp -d "${TMPDIR:-/tmp}/halo-dmg.XXXXXX")"
-  trap 'rm -rf "$STAGE"' EXIT
-  ditto "$APP" "$STAGE/Frenzy.app"
-  ln -s /Applications "$STAGE/Applications"
+  RW_MOUNT=""
+  cleanup_dmg() {
+    [[ -n "$RW_MOUNT" && -d "$RW_MOUNT" ]] && hdiutil detach "$RW_MOUNT" -quiet -force >/dev/null 2>&1 || true
+    rm -rf "$STAGE"
+  }
+  trap cleanup_dmg EXIT
+  VOLNAME="Frenzy $VERSION"
+
+  # The installer window's background, drawn at 1x and 2x and joined into one HiDPI TIFF.
+  swift scripts/make-dmg-background.swift "$STAGE/bg" | tee -a "$LOG"
+  tiffutil -cathidpicheck "$STAGE/bg/background.png" "$STAGE/bg/background@2x.png" -out "$STAGE/background.tiff" >/dev/null 2>&1
+
+  # What the window shows: the app and a shortcut to /Applications, nothing else. (Licences and the source offer
+  # live inside the app, in Contents/Resources/Licenses.)
+  mkdir -p "$STAGE/root/.background"
+  ditto "$APP" "$STAGE/root/Frenzy.app"
+  ln -s /Applications "$STAGE/root/Applications"
+  cp "$STAGE/background.tiff" "$STAGE/root/.background/background.tiff"
+
+  # Read-write first, so Finder can store the window layout, then compress.
+  RW_DMG="$STAGE/rw.dmg"
+  hdiutil create -volname "$VOLNAME" -srcfolder "$STAGE/root" -fs HFS+ -format UDRW -ov "$RW_DMG" 2>&1 | tee -a "$LOG"
+  RW_MOUNT="$(hdiutil attach "$RW_DMG" -readwrite -noverify -noautoopen \
+    | awk -F'\t' '/Apple_HFS/ {print $NF; exit}')"
+  [[ -d "$RW_MOUNT" ]] || { echo "error: could not mount the read-write image" >&2; exit 1; }
+  # Finder writes the layout into .DS_Store (the volume has to be visible to Finder for that, so no -nobrowse).
+  # If Finder automation isn't allowed, the DMG still works with Finder's default layout.
+  LAYOUT_OK=0
+  if osascript - "$RW_MOUNT" >>"$LOG" 2>&1 <<'APPLESCRIPT'
+on run argv
+  set mountPath to item 1 of argv
+  tell application "Finder"
+    set d to (POSIX file mountPath) as alias
+    open d
+    set w to container window of d
+    set current view of w to icon view
+    set toolbar visible of w to false
+    set statusbar visible of w to false
+    try
+      set sidebar width of w to 0
+    end try
+    -- 660 x 400 of picture plus the title bar.
+    set bounds of w to {200, 120, 860, 552}
+    set opts to icon view options of w
+    set arrangement of opts to not arranged
+    set icon size of opts to 128
+    set text size of opts to 13
+    set label position of opts to bottom
+    set shows item info of opts to false
+    set shows icon preview of opts to true
+    set background picture of opts to file ".background:background.tiff" of d
+    set position of item "Frenzy.app" of d to {180, 196}
+    set position of item "Applications" of d to {480, 196}
+    update d without registering applications
+    delay 1
+    close w
+  end tell
+end run
+APPLESCRIPT
+  then
+    LAYOUT_OK=1
+    # Give Finder a moment to flush .DS_Store before the image is detached.
+    for _ in 1 2 3 4 5 6 7 8 9 10; do [[ -f "$RW_MOUNT/.DS_Store" ]] && break; sleep 0.5; done
+    sleep 1
+  else
+    echo "warning: Finder did not accept the window layout (automation not allowed?). The DMG uses Finder's default layout." | tee -a "$LOG" >&2
+  fi
+  # The volume icon is the app icon (hdiutil -srcfolder drops dot files like this one, so it is copied in here,
+  # after Finder has written its layout).
+  cp "$ICON" "$RW_MOUNT/.VolumeIcon.icns"
+  # The custom volume icon flag (SetFile ships with the Command Line Tools; skip it if missing).
+  if command -v SetFile >/dev/null 2>&1; then
+    SetFile -c icnC "$RW_MOUNT/.VolumeIcon.icns" || true
+    SetFile -a C "$RW_MOUNT" || true
+  fi
+  [[ -f "$RW_MOUNT/.VolumeIcon.icns" ]] && echo "Volume icon: set" || echo "warning: volume icon missing" >&2
+  chmod -Rf go-w "$RW_MOUNT" || true
+  sync
+  hdiutil detach "$RW_MOUNT" -quiet || hdiutil detach "$RW_MOUNT" -force -quiet
+  RW_MOUNT=""
   rm -f "$DMG"
-  hdiutil create -volname "Frenzy $VERSION" -srcfolder "$STAGE" -fs HFS+ -format UDZO -imagekey zlib-level=9 -ov "$DMG" 2>&1 | tee -a "$LOG"
+  hdiutil convert "$RW_DMG" -format UDZO -imagekey zlib-level=9 -ov -o "$DMG" 2>&1 | tee -a "$LOG"
+  echo "Window layout: $([[ "$LAYOUT_OK" == 1 ]] && echo "custom (background, arrow, fixed positions)" || echo "Finder default")"
   hdiutil verify "$DMG" 2>&1 | tail -1 | tee -a "$LOG"
 
   if [[ "$IDENTITY" != "-" ]]; then
@@ -242,7 +323,8 @@ step "Done"
 echo "App:     $APP  ($(du -sh "$APP" | cut -f1), $(lipo -archs "$APP/Contents/MacOS/Frenzy"))"
 if [[ "$SKIP_DMG" == 0 ]]; then
   echo "DMG:     $DMG  ($(du -h "$DMG" | cut -f1))"
-  echo "SHA-256: $(shasum -a 256 "$DMG" | cut -d' ' -f1)"
+  (cd "$DIST" && shasum -a 256 "$(basename "$DMG")" > SHA256SUMS.txt)
+  echo "SHA-256: $(cut -d' ' -f1 "$DIST/SHA256SUMS.txt")  (also in $DIST/SHA256SUMS.txt)"
 fi
 echo "Signed:  $([[ "$IDENTITY" == "-" ]] && echo "ad-hoc (testers use System Settings > Privacy & Security > Open Anyway, see docs/RELEASE.md)" || echo "$IDENTITY")"
 echo "Notarized: $([[ -n "$NOTARY_PROFILE" ]] && echo yes || echo no)"

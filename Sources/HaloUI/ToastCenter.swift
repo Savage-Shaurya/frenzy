@@ -270,11 +270,13 @@ public final class ToastCenter: JobToastPresenting {
         }
         let panel = panel ?? makePanel()
         guard hosting != nil else { return }
-        let size = NSSize(width: Self.width, height: max(56, contentHeight))
+        let size = NSSize(width: CardMetrics.panelWidth, height: max(56, contentHeight))
 
         let screen = NSScreen.screens.first { NSMouseInRect(NSEvent.mouseLocation, $0.frame, false) } ?? NSScreen.main
         guard let visible = screen?.visibleFrame else { return }
-        let target = NSRect(x: visible.maxX - size.width - 14, y: visible.maxY - size.height - 14,
+        // The stack carries `hoverRoom` of clear space on every side, so the cards still sit 14 pt from the corner.
+        let margin = 14 - CardMetrics.hoverRoom
+        let target = NSRect(x: visible.maxX - size.width - margin, y: visible.maxY - size.height - margin,
                             width: size.width, height: size.height)
 
         let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
@@ -359,7 +361,7 @@ public final class ToastCenter: JobToastPresenting {
     }
 
     private func makePanel() -> ToastPanel {
-        let panel = ToastPanel(contentRect: NSRect(x: 0, y: 0, width: Self.width, height: 64),
+        let panel = ToastPanel(contentRect: NSRect(x: 0, y: 0, width: CardMetrics.panelWidth, height: 64),
                                styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: true)
         panel.isFloatingPanel = true
         panel.level = .statusBar
@@ -431,7 +433,9 @@ struct ToastView: View {
                     .transition(reduceMotion ? .opacity : Self.cardTransition)
             }
         }
-        .frame(width: ToastCenter.width)
+        // Clear room on every side, so a hovered card can swell without the panel's edge cutting it.
+        .padding(CardMetrics.hoverRoom)
+        .frame(width: CardMetrics.panelWidth)
         // Always the stack's own height, whatever the panel offers, and pinned to the top while the panel catches up.
         .fixedSize(horizontal: false, vertical: true)
         .background {
@@ -448,13 +452,22 @@ struct ToastView: View {
         .environment(\.controlActiveState, .key)
     }
 
-    /// A card slides in a short way from the screen edge and settles; it leaves by shrinking a touch as it fades, so the
-    /// cards under it close the gap without a jump. Reduce Motion: a dissolve.
+    /// A card slides in a short way from the screen edge and comes into focus as it settles (a soft blur clearing, as a
+    /// Dynamic Island alert does); it leaves by shrinking a touch and softening as it fades, so the cards under it close
+    /// the gap without a jump. Reduce Motion: a dissolve.
     static let cardTransition = AnyTransition.asymmetric(
-        insertion: .offset(x: 24).combined(with: .scale(scale: 0.96, anchor: .topTrailing)).combined(with: .opacity),
-        removal: .scale(scale: 0.96, anchor: .top).combined(with: .opacity))
+        insertion: .offset(x: 28).combined(with: .scale(scale: 0.94, anchor: .topTrailing)).combined(with: .opacity)
+            .combined(with: .modifier(active: CardFocus(radius: 8), identity: CardFocus(radius: 0))),
+        removal: .scale(scale: 0.96, anchor: .top).combined(with: .opacity)
+            .combined(with: .modifier(active: CardFocus(radius: 4), identity: CardFocus(radius: 0))))
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+}
+
+/// The blur a card comes into focus from, and softens into as it leaves.
+private struct CardFocus: ViewModifier {
+    let radius: CGFloat
+    func body(content: Content) -> some View { content.blur(radius: radius) }
 }
 
 private struct ToastHeightKey: PreferenceKey {
@@ -500,6 +513,13 @@ enum CardMetrics {
     static let stackGap: CGFloat = 8
     /// The close button's side. It sits in the top-right corner over the first line only.
     static let closeSide: CGFloat = 20
+    /// How much a card swells under the pointer: a touch, felt more than seen, like a key taking a finger.
+    static let hoverScale: CGFloat = 1.012
+    /// Clear room around the stack, so the swell never reaches the panel's edge.
+    static let hoverRoom: CGFloat = 3
+    /// A card's width (`ToastCenter.width`). The panel is this plus the hover room on each side.
+    static let width: CGFloat = 344
+    static let panelWidth: CGFloat = width + hoverRoom * 2
 
     /// Secondary text on the card's glass. The glass can sit over anything (a white page, a bright photo), so no fixed
     /// share of `.primary` is safe there: `.secondary` measured about 3:1 and 0.62 of `.primary` fell under 4.5:1 on light
@@ -510,12 +530,13 @@ enum CardMetrics {
         .primary.opacity(detailOpacity)
     }
 
-    /// Something went wrong, calmly: an amber deep enough for 4.5:1 as text, where the system's orange reaches about 2:1
-    /// on a light card.
+    /// Something went wrong, calmly: an amber deep enough for 4.5:1 as text (#8F5C00, 5.7:1 on white; #FFC24D on dark),
+    /// where the system's orange reaches about 2:1 on a light card. It leans gold, about 23 degrees clear of the ember
+    /// accent, so a failure never reads as the brand's "done".
     static let attention = Color(nsColor: NSColor(name: "FrenzyAttention") { appearance in
         appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(srgbRed: 1, green: 0.70, blue: 0.25, alpha: 1)
-            : NSColor(srgbRed: 0.66, green: 0.33, blue: 0, alpha: 1)
+            ? NSColor(srgbRed: 1, green: 0.76, blue: 0.30, alpha: 1)
+            : NSColor(srgbRed: 0.56, green: 0.36, blue: 0, alpha: 1)
     })
 }
 
@@ -547,7 +568,7 @@ struct ToastCard: View {
             }
         }
         .padding(CardMetrics.padding)
-        .frame(width: ToastCenter.width, alignment: .leading)
+        .frame(width: CardMetrics.width, alignment: .leading)
         .modifier(CardSurface(shape: card))
         .modifier(CardHover(shape: card, hovering: hoverState.projectedValue))
     }
@@ -559,6 +580,7 @@ private struct CardHover<S: Shape>: ViewModifier {
     let shape: S
     @Binding var hovering: Bool
     @Environment(\.toastStillRender) private var stillRender
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
         if stillRender {
@@ -566,6 +588,10 @@ private struct CardHover<S: Shape>: ViewModifier {
         } else {
             content
                 .contentShape(shape)
+                // A small swell on the bubbles' crisp hover spring: the card answers the pointer the way a key answers a
+                // finger.
+                .scaleEffect(hovering && !reduceMotion ? CardMetrics.hoverScale : 1)
+                .animation(RingMotion.bubbleHover, value: hovering)
                 .onHover { hovering = $0 }
                 .environment(\.toastCardHovered, hovering)
         }
@@ -589,18 +615,22 @@ private struct CardSurface<S: InsettableShape>: ViewModifier {
     }
 }
 
-/// Liquid Glass brings its own edge, so a drawn one would double it, and under Reduce Transparency or Increase Contrast
-/// `LiquidGlassBackground` draws a solid rim (`GlassRim`). Only frosted material on older macOS needs this soft line.
-private struct CardEdge<S: Shape>: View {
+/// Under Reduce Transparency or Increase Contrast `LiquidGlassBackground` draws a solid rim (`GlassRim`), so nothing is
+/// added. Frosted material on older macOS gets the full soft line. Liquid Glass brings its own edge, so it only gets a
+/// specular hairline along the top that fades out by the middle: light caught on the lip, not a second border.
+private struct CardEdge<S: InsettableShape>: View {
     let shape: S
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         if reduceTransparency || contrast == .increased {
             EmptyView()
         } else if #available(macOS 26.0, *) {
-            EmptyView()
+            shape.strokeBorder(LinearGradient(colors: [.white.opacity(colorScheme == .dark ? 0.22 : 0.55), .white.opacity(0)],
+                                              startPoint: .top, endPoint: .center),
+                               lineWidth: 0.5)
         } else {
             GlassEdge(shape: shape)
         }
@@ -687,14 +717,16 @@ struct ProgressCard: View {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(labels.headline)
                         .font(.frenzy(.body, weight: .semibold))
+                        .kerning(-0.1)
                         .lineLimit(1)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    // The width is held before progress starts, so the headline never jumps.
+                    // Tabular figures in a held width ("100%" fits), so neither the number nor the headline ever moves
+                    // as it counts; each digit rolls rather than flickers.
                     Text(fraction, format: .percent.precision(.fractionLength(0)))
-                        .font(.frenzy(.label, weight: .medium).monospacedDigit())
+                        .font(.frenzy(.label, weight: .semibold).monospacedDigit())
                         .foregroundStyle(CardMetrics.detail(contrast))
                         .contentTransition(.numericText(value: fraction))
-                        .frame(minWidth: 34, alignment: .trailing)
+                        .frame(minWidth: 36, alignment: .trailing)
                         .opacity(fraction > 0 ? 1 : 0)
                         .accessibilityHidden(true)
                 }
@@ -778,6 +810,7 @@ struct ResultCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(result.name)
                         .font(.frenzy(.body, weight: .semibold))
+                        .kerning(-0.1)
                         .lineLimit(1)
                         .truncationMode(.middle)
                         // Long names stop short of the close button.
@@ -954,6 +987,7 @@ struct MessageCard: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(labels.headline)
                     .font(.frenzy(.body, weight: .semibold))
+                    .kerning(-0.1)
                     .lineLimit(1)
                     .truncationMode(.middle)
                     // Stops short of the close button, which sits over this line only.
@@ -1046,17 +1080,19 @@ struct CardThumbnail: View {
             }
         }
         .frame(width: CardMetrics.thumbnail, height: CardMetrics.thumbnail)
+        // A soft inner shadow from above, so the file sits in a shallow well in the glass rather than on top of it.
+        .overlay {
+            tile.strokeBorder(Color.black.opacity(colorScheme == .dark ? 0.35 : 0.14), lineWidth: 3)
+                .blur(radius: 2.5)
+                .offset(y: 1)
+                .allowsHitTesting(false)
+        }
         .clipShape(tile)
         // Design direction rule 11: a 1 pt inset outline, white 10% on dark, black 10% on light.
         .overlay(tile.strokeBorder(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 1))
         .overlay(alignment: .bottomTrailing) {
             if badge {
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.frenzyGlyph(15, weight: .semibold))
-                    .symbolRenderingMode(.palette)
-                    .foregroundStyle(.white, FrenzyPalette.accent)
-                    .background(Circle().fill(.white).padding(2))
-                    .shadow(color: .black.opacity(0.18), radius: 1.5, y: 0.5)
+                SuccessMark()
                     .offset(x: 5, y: 5)
             }
         }
@@ -1099,8 +1135,9 @@ struct ArcArrival: GeometryEffect {
     }
 }
 
-/// Always the brand colour, never `Color.accentColor`: a Mac with a red system accent would read this as an error.
-/// Thin, so it informs without shouting; the number above it carries the exact share.
+/// Always the brand's ember, never `Color.accentColor`: a Mac with a red system accent would read this as an error.
+/// The done part runs deep ember into flame, so the bar seems to glow at its leading edge as it grows; Increase
+/// Contrast gets the flat accent. Thin, so it informs without shouting; the number above it carries the exact share.
 struct ToastProgressBar: View {
     let fraction: Double
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -1118,7 +1155,7 @@ struct ToastProgressBar: View {
                 Capsule().fill(Color.primary.opacity(contrast == .increased ? 0.3 : 0.1))
                 if fraction > 0 {
                     Capsule()
-                        .fill(FrenzyPalette.accent)
+                        .fill(contrast == .increased ? AnyShapeStyle(FrenzyPalette.accent) : AnyShapeStyle(FrenzyPalette.progressGradient))
                         .frame(width: max(Self.height, proxy.size.width * fraction))
                 } else if reduceMotion {
                     // Not started, Reduce Motion: no sliding, the whole track breathes so the card never looks stuck.
@@ -1130,7 +1167,8 @@ struct ToastProgressBar: View {
                     // Not started yet: a short segment glides back and forth so the card never looks frozen.
                     let segment = proxy.size.width * 0.28
                     Capsule()
-                        .fill(FrenzyPalette.accent.opacity(0.7))
+                        .fill(FrenzyPalette.progressGradient)
+                        .opacity(0.8)
                         .frame(width: segment)
                         .offset(x: phase ? proxy.size.width - segment : 0)
                         .animation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true), value: phase)
@@ -1140,6 +1178,26 @@ struct ToastProgressBar: View {
         }
         .frame(height: Self.height)
         .animation(RingMotion.progress, value: fraction)
+    }
+}
+
+/// The calm "done" mark on a result's thumbnail: a small ember coin, lit from the top like the icon's folds, with a white
+/// check (4.6:1 or better on every part of it) and a hairline rim that lifts it off any thumbnail.
+struct SuccessMark: View {
+    static let side: CGFloat = 17
+
+    var body: some View {
+        ZStack {
+            Circle().fill(LinearGradient(colors: [FrenzyPalette.accent, FrenzyPalette.deep.color],
+                                         startPoint: .top, endPoint: .bottom))
+            Image(systemName: "checkmark")
+                .font(.frenzyGlyph(8.5, weight: .heavy))
+                .foregroundStyle(.white)
+        }
+        .frame(width: Self.side, height: Self.side)
+        .overlay(Circle().strokeBorder(.white.opacity(0.9), lineWidth: 1.25))
+        .shadow(color: FrenzyPalette.deep.color.opacity(0.35), radius: 2.5, y: 1)
+        .accessibilityHidden(true)
     }
 }
 

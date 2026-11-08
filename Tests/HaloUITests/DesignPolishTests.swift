@@ -99,9 +99,11 @@ import HaloConverters
         let dark = scheme == .darkAqua
         let surface = LabelSurface(ground: .disc, dark: dark, increasedContrast: false, reduceTransparency: false)
         #expect(surface.ink == HeroPalette.white)
-        let accent = try accent(scheme)
-        #expect(contrast(surface, over: accent) >= 4.5)
-        #expect(contrast(surface, over: accent.mixed(with: HeroPalette.white, glassLightens)) >= 4.5)
+        // The disc runs flame into the accent into deep ember; the words sit where it is the accent or deeper.
+        for tone in [try accent(scheme), FrenzyPalette.deep] {
+            #expect(contrast(surface, over: tone) >= 4.5)
+            #expect(contrast(surface, over: tone.mixed(with: HeroPalette.white, glassLightens)) >= 4.5)
+        }
     }
 
     /// With the disc gone, a centre goes back to the ordinary ink and no plate.

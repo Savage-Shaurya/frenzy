@@ -25,7 +25,8 @@ import HaloCore
         /// Height of the cards now showing, measured by a separate view that sizes itself normally.
         func needed() -> CGFloat {
             let cards = center.model.entries.map { NSHostingView(rootView: ToastCard(entry: $0, actions: actions)).fittingSize.height }
-            return cards.reduce(0, +) + CGFloat(max(cards.count - 1, 0)) * 8
+            // The stack keeps clear room around itself for a hovered card's swell.
+            return cards.reduce(0, +) + CGFloat(max(cards.count - 1, 0)) * 8 + CardMetrics.hoverRoom * 2
         }
         func check(_ kind: String, min: CGFloat) async throws {
             await settle()
@@ -364,6 +365,16 @@ import HaloCore
                        (bar.blueComponent, brand.blueComponent)] {
             #expect(abs(a - b) < 0.01, "bar \(bar), brand \(brand)")
         }
+    }
+
+    /// One corner everywhere (22 pt, the thumbnail's 8 plus the padding), the cards as wide as the panel says, and room
+    /// around the stack for the hover swell, so the panel's edge never cuts a hovered card.
+    @Test func cardsKeepTheirGridAndRoomToSwell() {
+        #expect(CardMetrics.corner == 22)
+        #expect(CardMetrics.width == ToastCenter.width)
+        #expect(CardMetrics.panelWidth == ToastCenter.width + CardMetrics.hoverRoom * 2)
+        #expect(CardMetrics.hoverScale > 1 && CardMetrics.hoverScale < 1.02, "a touch, not a jump")
+        #expect(CardMetrics.width * (CardMetrics.hoverScale - 1) / 2 <= CardMetrics.hoverRoom)
     }
 
     // MARK: Renders

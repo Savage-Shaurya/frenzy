@@ -10,7 +10,7 @@ no Xcode project is needed.
 | Local test build, launch it | `scripts/run-dev.sh` (add `--logs` to stream Frenzy's logs) |
 | Tester build (ad-hoc signed DMG) | `scripts/build-app.sh --universal` |
 | Public release (signed + notarized) | `scripts/build-app.sh --universal --sign "Developer ID Application: Snappy Crew (TEAMID)" --notarize halo-notary` |
-| Regenerate the app icon | `swift scripts/make-icon.swift` |
+| Regenerate the app icon | `python3 scripts/make-app-icon.py` (from Resources/AppIcon-source.png) |
 | Prove the worker sandbox applies | `dist/Frenzy.app/Contents/MacOS/Frenzy --worker-self-test` |
 
 Outputs land in `dist/`: `Frenzy.app`, `Frenzy-<version>.dmg`, `build-log.txt`, `spctl-app.txt` (the Gatekeeper verdict).
@@ -31,8 +31,11 @@ Outputs land in `dist/`: `Frenzy.app`, `Frenzy-<version>.dmg`, `build-log.txt`, 
    lost `com.apple.security.app-sandbox` or gained any `com.apple.security.network.*` key**, and records the `spctl`
    verdict.
 5. With `--notarize`: zips the app, `xcrun notarytool submit --wait`, `xcrun stapler staple` on the app.
-6. Builds the DMG with `hdiutil` (the app plus an `/Applications` shortcut), then with a real identity signs the DMG,
-   notarizes it and staples it too.
+6. Builds the DMG with `hdiutil` (only the app and an `/Applications` shortcut, on a background drawn by
+   `scripts/make-dmg-background.swift`, laid out by Finder through AppleScript, with the app icon as the volume
+   icon), writes `dist/SHA256SUMS.txt`, then with a real identity signs the DMG, notarizes it and staples it too.
+   GPL texts and the written source offer (`Resources/SOURCE-OFFER.txt`) ship inside the app in
+   `Contents/Resources/Licenses`. If the app icon changes, the background needs no change.
 
 ### Universal binary
 
@@ -179,7 +182,7 @@ settings page when the user turns it back on.
 
 ## Known limits of CLT-only builds
 
-- No asset catalog compiler: the icon is a plain `AppIcon.icns` (made by `scripts/make-icon.swift`) referenced by
+- No asset catalog compiler: the icon is a plain `AppIcon.icns` (made by `scripts/make-app-icon.py`) referenced by
   `CFBundleIconFile`.
 - The SwiftUI macro plugin (`SwiftUIMacros`) isn't in the Command Line Tools, so `@State` and `@Entry` macros fail
   to build against the macOS 27 SDK. HaloUI uses `State(initialValue:)` structs and `ObservableObject` instead. Keep

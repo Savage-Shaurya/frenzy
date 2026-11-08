@@ -1,73 +1,87 @@
-# Frenzy
+<p align="center">
+  <img src="Resources/AppIcon-1024.png" width="128" alt="Frenzy app icon">
+</p>
 
-Frenzy is a free, offline menu-bar app for macOS that converts files where they are.
+<h1 align="center">Frenzy</h1>
 
-1. Start dragging a file.
-2. Hold **Option** (⌥). A ring of conversions appears at the cursor.
-3. Drop the file on a choice. The converted file appears next to the original, and a small notice confirms it.
+<p align="center">
+  Drag a file. Pause. Drop. Done.<br>
+  Free file converter for Mac. Works offline. Your files never leave your computer.
+</p>
 
-HEIC to JPG, PDF to images, video to audio, compress a PDF, pull text out of a screenshot, and more. Everything
-runs on your Mac with Apple's built-in frameworks. No uploads, no accounts, no tracking. Your files are opened only
-by Frenzy's worker, a separate process in the macOS App Sandbox with no network access, so even a damaged or hostile
-file can't reach the internet through Frenzy or write anywhere but the worker's own folder. See
-[docs/PRIVACY.md](docs/PRIVACY.md).
+<p align="center">
+  <a href="../../releases/latest"><b>Download Frenzy for Mac</b></a>
+</p>
 
-Requires macOS 14 Sonoma or later. Runs natively on Apple silicon and Intel (universal builds).
+---
 
-## Using Frenzy
+## What it does
 
-- The ring icon in the menu bar holds everything: Pause / Resume, Recent Conversions (click one to show it in
-  Finder), Open at Login, Settings, the welcome guide, About, and Quit.
-- Settings lets you pick the trigger key (Option, Shift, Control or fn), how many choices the ring shows, whether
-  to show notices and play sounds, and whether to reveal new files in Finder.
-- If no conversion fits the file you're dragging, no ring appears (it would only get in the way of your drop) and a
-  short notice says why.
-- Originals are never changed. New files never overwrite anything: "photo.jpg", then "photo 2.jpg".
-- A conversion in progress shows a notice with **Cancel**. Quitting (or logging out) while converting cancels the
-  work and cleans up first, so no half-written files are left behind.
+Start dragging any file and hold still for half a second. A ring of choices opens around your pointer. Drop the file on one, and the converted copy appears right next to the original.
 
-## Build
-
-You need the Xcode Command Line Tools (Swift 6) on macOS 14 or later. Full Xcode is not required.
-
-```sh
-cd apps/halo
-swift build --scratch-path .build/app          # debug build of everything
-scripts/run-dev.sh                             # build dist/Frenzy.app and launch it
-scripts/build-app.sh --universal               # dist/Frenzy.app + dist/Frenzy-0.1.0.dmg (ad-hoc signed)
-```
-
-Run Frenzy from `dist/Frenzy.app` (that is what `run-dev.sh` does) rather than `swift run`, so it behaves like the real
-app: no Dock icon, its own icon, launch at login, and above all conversions in the sandboxed worker. A `swift run`
-build has no bundled worker and converts in-process (it logs a warning).
-
-Release signing, notarization and the Gatekeeper notes for testers are in [docs/RELEASE.md](docs/RELEASE.md).
-
-## Test
-
-```sh
-swift test --scratch-path .build/test
-swift test --scratch-path .build/test --filter HaloCoreTests     # one module
-scripts/e2e.sh --no-screenshot                                   # real app, real drags (needs Accessibility for the terminal)
-```
-
-Tests use Swift Testing and generate their own sample files at run time.
-
-## Project layout
-
-| Path | What it is |
+| Drop a... | Get |
 |---|---|
-| `Sources/HaloCore` | Actions, registry, conversion runner, safe output naming and placement, the worker protocol. No UI. |
-| `Sources/HaloConverters` | Every conversion, one file per family (images, PDF, video, audio, documents, text). |
-| `Sources/HaloUI` | The ring, notices, Settings and welcome screens (SwiftUI). |
-| `Sources/HaloDrag` | System-wide drag detection and the floating ring panel. |
-| `Sources/HaloWorker` | The sandboxed conversion worker (XPC service): `Kit/` (engine, listener, sandbox self-test) and `Main/`. |
-| `Sources/HaloApp` | The menu-bar app: wiring (`AppController`), the worker client (`XPCBackend.swift`), launch at login, windows. `Integration.swift` is the one place that picks concrete types. |
-| `Resources` | `Info.plist`, `Frenzy.entitlements`, `Worker-Info.plist`, `HaloWorker.entitlements`, `AppIcon.icns`, `AppIcon-1024.png` |
-| `scripts` | `build-app.sh`, `run-dev.sh`, `e2e.sh`, `make-icon.swift` |
+| Photo | JPG, PNG, HEIC, WebP, smaller size, half size, text from the picture |
+| PDF | Smaller PDF, images, Word, text |
+| Video | MP4, smaller video, GIF, just the sound |
+| Audio | MP3, M4A, WAV, FLAC |
+| Document | PDF |
+| Folder or zip | Zip, unzip |
 
-How the pieces fit together, and the project's hard rules, are in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Your original file is never changed.
 
-## License and credits
+## Install (2 minutes)
 
-© 2026 Snappy Crew. Frenzy is free to use.
+You need a Mac with Apple silicon (M1 or newer) and macOS 14 or later.
+
+**1. Download**
+Get `Frenzy-0.1.0.dmg` from the [latest release](../../releases/latest).
+
+**2. Install**
+Double-click the file you downloaded. In the window that opens, drag **Frenzy** onto **Applications**.
+
+**3. Open**
+Open your **Applications** folder and double-click **Frenzy**.
+
+**4. The first time only: allow it**
+Mac will say *"Apple could not verify Frenzy"*. This is normal for free apps that are not sold through Apple.
+
+1. Click **Done**.
+2. Open **System Settings**, then **Privacy & Security**.
+3. Scroll down and click **Open Anyway** next to Frenzy.
+4. Enter your Mac password, then click **Open Anyway** again.
+
+Frenzy opens. Your Mac remembers this, so you never have to do it again.
+
+## Use it
+
+1. Start dragging any file.
+2. Stop moving for half a second. The ring opens.
+3. Drop the file on what you want.
+
+That's all. Frenzy lives in your Dock. To have it ready every time you turn on your Mac, right-click the Frenzy icon in the Dock, then choose **Options** and **Open at Login**.
+
+## Private by design
+
+- Everything happens on your Mac. No account, no upload, no tracking.
+- Files are converted in a locked-down helper that macOS blocks from the internet.
+- Frenzy saves a new file and never edits the one you dropped.
+
+## Remove it
+
+Quit Frenzy, then drag it from **Applications** to the **Bin**.
+
+## Questions
+
+| Problem | Fix |
+|---|---|
+| "Apple could not verify Frenzy" | Follow step 4 above. You only do it once. |
+| The ring doesn't open | Hold the file still for half a second while dragging. Or hold **Option** while you drag. |
+| "Frenzy is damaged" | Download the DMG again, then repeat the install steps. |
+| Something else | Contact [Snappy Crew](https://snappycrew.com). |
+
+## Licence
+
+Frenzy is free software under the GNU General Public License v2 or later. It includes FFmpeg, x264 and x265. The full licence texts are inside the app. Snappy Crew will provide the source code on request.
+
+<p align="center">Made by <a href="https://snappycrew.com">Snappy Crew</a></p>

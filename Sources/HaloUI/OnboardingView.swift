@@ -500,10 +500,11 @@ private struct TriggerStep: View {
         get { spreadState.wrappedValue } nonmutating set { spreadState.wrappedValue = newValue }
     }
 
-    /// Indigo is the family closest to the brand colour, and only the chosen bubble shows it.
+    /// PDF's red is the icon's ember red, so the chosen key reads as part of the fire (text's orange lit up brown on the
+    /// disc), and only the chosen bubble shows it.
     private static let items = TriggerKey.allCases.map {
         RingItem(id: ActionID(rawValue: "trigger.\($0.rawValue)"), title: $0.bubbleTitle, subtitle: nil,
-                 symbolName: $0.symbolName, category: .document)
+                 symbolName: $0.symbolName, category: .pdf)
     }
 
     var body: some View {

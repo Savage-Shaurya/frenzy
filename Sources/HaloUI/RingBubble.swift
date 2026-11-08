@@ -275,9 +275,10 @@ enum HeroDiscRule {
     }
 }
 
-/// The one flat disc of the brand colour behind a screen's hero. No blur and no gradient: its hard edge, running behind
-/// the bubbles, is what gives the glass something to bend. It goes where the glass stops bending (Reduce Transparency) or
-/// where it would compete with the words (Increase Contrast).
+/// The one disc of ember behind a screen's hero, lit from the top like the icon's back folds: flame at the top, the
+/// accent below it, a step deeper from a third of the way down, where the words sit. No blur: its hard edge, running behind
+/// the bubbles, is what gives the glass something to bend. It goes where the glass stops bending (Reduce Transparency)
+/// or where it would compete with the words (Increase Contrast).
 struct HeroDisc: View {
     @Environment(\.colorSchemeContrast) private var contrast
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
@@ -285,7 +286,7 @@ struct HeroDisc: View {
     var body: some View {
         if HeroDiscRule.isShown(reduceTransparency: reduceTransparency, contrast: contrast) {
             Circle()
-                .fill(FrenzyPalette.accent)
+                .fill(FrenzyPalette.discGradient)
                 .frame(width: HeroDiscRule.diameter, height: HeroDiscRule.diameter)
                 .allowsHitTesting(false)
                 .accessibilityHidden(true)
@@ -293,16 +294,58 @@ struct HeroDisc: View {
     }
 }
 
-/// The one brand colour. Bubbles carry family colours only under the pointer; everything else that asks for attention
-/// (the primary button, the drop highlight) uses this.
+/// Phoenix ember, sampled from the app icon's back folds (Resources/AppIcon-1024.png: ember red #AE1B12, #DA3D15,
+/// flame #EF6823, #FA8B2C, gold #FDAB3E, the tile #F9E5D9). One brand colour: bubbles carry family colours only under
+/// the pointer; everything else that asks for attention (the primary button, the drop highlight, focus) uses `accent`.
+/// The warm gradient is kept for a few hero moments: the disc behind a hero, a running bar, the brand mark.
 enum FrenzyPalette {
-    static let accent = Color(nsColor: NSColor(name: "FrenzyAccent") { appearance in
-        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
-            ? NSColor(srgbRed: 0.47, green: 0.33, blue: 0.96, alpha: 1)
-            : NSColor(srgbRed: deep.r, green: deep.g, blue: deep.b, alpha: 1)
-    })
-    /// The accent in its deeper form, as it is on a light window.
-    static let deep = HeroPalette.RGB(r: 0.39, g: 0.25, b: 0.86)
+    /// Ember: #C4420F on a light window (white text 5.1:1, 5.1:1 on white as a focus ring), #CC4A12 on a dark one
+    /// (white text 4.6:1, 3.6:1 on the dark window as a ring or bar).
+    static let accent = dynamic("FrenzyAccent", light: 0xC4420F, dark: 0xCC4A12)
+    /// Pressed and hovered: a step deeper, #A8320C (white 6.7:1) and #B93A0F (white 5.7:1).
+    static let pressed = dynamic("FrenzyAccentPressed", light: 0xA8320C, dark: 0xB93A0F)
+    /// A soft wash for backgrounds behind the accent: the icon's warm tile on light (#FCEBDF), banked embers on dark
+    /// (#3A2016). Words on it stay in ink (16:1 and better); the accent on it is a mark, never text.
+    static let tint = dynamic("FrenzyAccentTint", light: 0xFCEBDF, dark: 0x3A2016)
+    /// The accent a step deeper, as RGB: the plate under white words on the disc.
+    static let deep = HeroPalette.RGB(hex: 0xA8320C)
+    /// The icon's lit fold and its tip: decoration only, never under words.
+    static let flame = HeroPalette.RGB(hex: 0xEF6823)
+    static let gold = HeroPalette.RGB(hex: 0xFDAB3E)
+    static let emberRed = HeroPalette.RGB(hex: 0xAE1B12)
+
+    /// The hero disc: a lip of flame along the top running into the accent, then deep ember from a third of the way down,
+    /// which is exactly the plate's tone, so the plate under the centre's words melts into the disc instead of showing.
+    static let discGradient = LinearGradient(stops: [.init(color: flame.color, location: 0),
+                                                     .init(color: accent, location: 0.13),
+                                                     .init(color: deep.color, location: 0.32),
+                                                     .init(color: deep.color, location: 1)],
+                                             startPoint: .top, endPoint: .bottom)
+
+    /// A running bar: deep ember into flame along the part done, with the accent itself held across the middle so the bar
+    /// still reads as the brand colour at a glance.
+    static let progressGradient = LinearGradient(stops: [.init(color: deep.color, location: 0),
+                                                         .init(color: accent, location: 0.44),
+                                                         .init(color: accent, location: 0.56),
+                                                         .init(color: flame.color, location: 1)],
+                                                 startPoint: .leading, endPoint: .trailing)
+
+    /// The brand mark's tile: ember red to flame to gold on the diagonal, as the icon's back folds run.
+    static let heroGradient = LinearGradient(colors: [emberRed.color, flame.color, gold.color],
+                                             startPoint: .bottomLeading, endPoint: .topTrailing)
+
+    private static func dynamic(_ name: String, light: UInt32, dark: UInt32) -> Color {
+        Color(nsColor: NSColor(name: NSColor.Name(name)) { appearance in
+            let rgb = HeroPalette.RGB(hex: appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light)
+            return NSColor(srgbRed: rgb.r, green: rgb.g, blue: rgb.b, alpha: 1)
+        })
+    }
+}
+
+extension HeroPalette.RGB {
+    init(hex: UInt32) {
+        self.init(r: Double((hex >> 16) & 0xFF) / 255, g: Double((hex >> 8) & 0xFF) / 255, b: Double(hex & 0xFF) / 255)
+    }
 }
 
 extension View {

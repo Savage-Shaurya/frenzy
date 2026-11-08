@@ -190,17 +190,10 @@ final class AppController: NSObject, NSMenuDelegate {
             if result == .notLaidOut, attemptsLeft > 1 {
                 self.checkStatusItemVisibility(after: .seconds(3), attemptsLeft: attemptsLeft - 1)
             } else if result.isHidden {
-                self.showHiddenIconNotice(result)
+                // No card asking the user to change settings: Frenzy has a Dock icon, and dragging works anyway.
+                self.log.notice("Status icon hidden by macOS; the Dock icon still opens Frenzy")
             }
         }
-    }
-
-    private func showHiddenIconNotice(_ reason: MenuBarIconVisibility) {
-        let why = reason == .behindNotch
-            ? "Your menu bar is full, so macOS put Frenzy's icon under the camera."
-            : "macOS isn't showing Frenzy's icon. You can allow it under Menu Bar in System Settings."
-        toasts.showNotice("Frenzy's icon is hidden",
-                          message: "\(why) Frenzy still works: start dragging a file and \(settings.gesture).")
     }
 
     func stop() {

@@ -78,19 +78,31 @@ public enum RingMotion {
 }
 
 public extension ActionCategory {
-    /// Calm system tint per family. System colours adapt to dark mode and Increase Contrast on their own.
+    /// Calm tint per family. System colours adapt to dark mode and Increase Contrast on their own. Nothing in the old
+    /// brand's hue: the app is ember now, and a bubble in that hue would read as the old brand. Video takes the icon's gold (it lights a deep amber) and
+    /// documents a cobalt that sits clear of the "More" blue.
     var tint: Color {
         switch self {
         case .image: Color(nsColor: .systemTeal)
         case .pdf: Color(nsColor: .systemRed)
-        case .video: Color(nsColor: .systemPurple)
+        case .video: Color(nsColor: .systemYellow)
         case .audio: Color(nsColor: .systemPink)
-        case .document: Color(nsColor: .systemIndigo)
+        case .document: FamilyTint.cobalt
         case .text: Color(nsColor: .systemOrange)
         // Green, not brown: brown darkened to carry white text turned to mud, and green is the one clear hue left.
         case .archive: Color(nsColor: .systemGreen)
         }
     }
+}
+
+/// The one family colour the system has no name for. Hue about 227°: blue, a clear 19° or more from system blue in
+/// every appearance, so documents and "More" never light up alike.
+enum FamilyTint {
+    static let cobalt = Color(nsColor: NSColor(name: "FrenzyCobalt") { appearance in
+        appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            ? NSColor(srgbRed: 0.36, green: 0.50, blue: 1, alpha: 1)
+            : NSColor(srgbRed: 0.20, green: 0.36, blue: 0.95, alpha: 1)
+    })
 }
 
 extension RingItem {

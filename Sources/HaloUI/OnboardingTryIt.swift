@@ -35,7 +35,7 @@ public enum OnboardingSample {
         return url
     }
 
-    /// A calm dusk landscape: sky gradient, a low sun with a soft glow, two layers of hills.
+    /// A calm ember dusk, in the icon's colours: a gold to flame sky, a low sun with a soft glow, two layers of warm hills.
     static func makeImage() -> CGImage? {
         let w = Int(pixelSize.width), h = Int(pixelSize.height)
         guard let space = CGColorSpace(name: CGColorSpace.sRGB),
@@ -46,7 +46,7 @@ public enum OnboardingSample {
         }
         let width = CGFloat(w), height = CGFloat(h)
         let sky = CGGradient(colorsSpace: space,
-                             colors: [color(0.99, 0.80, 0.58), color(0.93, 0.52, 0.52), color(0.36, 0.33, 0.64)] as CFArray,
+                             colors: [color(1, 0.84, 0.58), color(0.96, 0.55, 0.36), color(0.62, 0.22, 0.16)] as CFArray,
                              locations: [0, 0.45, 1])!
         ctx.drawLinearGradient(sky, start: CGPoint(x: 0, y: height * 0.3), end: CGPoint(x: 0, y: height),
                                options: [.drawsBeforeStartLocation, .drawsAfterEndLocation])
@@ -68,8 +68,8 @@ public enum OnboardingSample {
             ctx.setFillColor(fill)
             ctx.fillPath()
         }
-        hill(base: height * 0.36, amplitude: height * 0.05, phase: 0.8, fill: color(0.45, 0.32, 0.55))
-        hill(base: height * 0.22, amplitude: height * 0.06, phase: 2.6, fill: color(0.24, 0.20, 0.38))
+        hill(base: height * 0.36, amplitude: height * 0.05, phase: 0.8, fill: color(0.66, 0.27, 0.17))
+        hill(base: height * 0.22, amplitude: height * 0.06, phase: 2.6, fill: color(0.34, 0.13, 0.10))
         return ctx.makeImage()
     }
 }
